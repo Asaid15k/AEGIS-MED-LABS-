@@ -4,15 +4,9 @@
 <meta charset="UTF-8">
 <title>AEGISMEDLABS</title>
 
-<!-- Bootstrap -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<!-- Font -->
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-<!-- CSS -->
 <link rel="stylesheet" href="../static/css/style.css">
-
 </head>
 
 <body>
@@ -23,7 +17,7 @@
     <a href="doctor_login.html">👨‍⚕ Doctor Login</a>
     <a href="pharmacist_login.html">💊 Pharmacist Login</a>
     <a href="admin_login.html">🛡 Admin Login</a>
-    <a href="doctorprescription.html">📝 Prescription Panel</a>
+    <a href="doctor.html">📝 Prescription Panel</a>
     <a href="verify.html">✅ Verify QR</a>
 </div>
 
@@ -49,8 +43,7 @@
     <h2 class="section-title">System Modules</h2>
 
     <div class="panels">
-
-        <a href="doctorprescription.html" class="panel">
+        <a href="doctor.html" class="panel">
             <h3>👨‍⚕ Doctor Panel</h3>
             <p>Create secure prescriptions</p>
         </a>
@@ -60,11 +53,11 @@
             <p>Validate prescription authenticity</p>
         </a>
 
+        <!-- ✅ Admin goes to LOGIN first -->
         <a href="admin_login.html" class="panel">
             <h3>🛡 Admin Dashboard</h3>
             <p>Monitor logs & security</p>
         </a>
-
     </div>
 </section>
 
@@ -76,13 +69,12 @@
         <button onclick="location.href='doctor_login.html'">Doctor Login</button>
         <button onclick="location.href='pharmacist_login.html'">Pharmacist Login</button>
         <button onclick="location.href='admin_login.html'">Admin Login</button>
-        <button onclick="location.href='doctorprescription.html'">Prescription Panel</button>
+        <button onclick="location.href='doctor.html'">Prescription Panel</button>
     </div>
 </section>
 
 <!-- FOOTER -->
 <div class="footer">
-
     <h2>About Us</h2>
 
     <p>
@@ -95,6 +87,17 @@
     <p>📍 Headquarters: <b>M.H SABOO SIDDIK, BYCULLA</b></p>
     <p>📞 Contact: 9892080339</p>
 
+    <!-- SOCIAL ICONS -->
+    <div class="social-icons">
+        <a href="https://www.linkedin.com/in/asaid-shaikh-a9652128a/" target="_blank">
+            <img src="../static/images/linkedin.png">
+        </a>
+        <a href="https://www.instagram.com/asaid_15k/" target="_blank">
+            <img src="../static/images/instagram.png">
+        </a>
+        <a href="#"><img src="../static/images/youtube.png"></a>
+        <a href="#"><img src="../static/images/x.png"></a>
+    </div>
 </div>
 
 <script>
