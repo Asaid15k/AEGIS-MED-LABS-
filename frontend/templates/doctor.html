@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Panel | AEGISMEDLABS</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="stylesheet" href="../static/css/style.css">
+<style>
+  /* ── Step dots ── */
+  .step-indicator { display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px; }
+  .step-dot { width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);transition:background 0.3s; }
+  .step-dot.active { background:var(--brand-pink); }
+
+  /* ── QR result box ── */
+  .qr-result-box {
+    margin-top:28px;padding:30px 24px;border-radius:20px;
+    background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);
+    backdrop-filter:blur(15px);animation:fadeUp 0.5s ease;text-align:center;
+  }
+  .success-badge {
+    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(138,255,193,0.1);border:1px solid rgba(138,255,193,0.3);
+    border-radius:50px;padding:6px 16px;font-size:13px;color:#8affc1;font-weight:500;margin-bottom:22px;
+  }
+  .qr-wrapper {
+    display:inline-block;padding:14px;
+    background:linear-gradient(135deg,var(--brand-pink),var(--brand-purple));
+    border-radius:20px;box-shadow:0 0 30px rgba(255,78,205,0.5);margin-bottom:20px;
+  }
+  .qr-wrapper img { border-radius:10px;background:#fff;padding:8px;display:block; }
+
+  .meta-grid {
+    background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);
+    border-radius:14px;padding:16px;text-align:left;margin-bottom:20px;
+  }
+  .meta-row { display:flex;justify-content:space-between;align-items:center;
+    padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px; }
+  .meta-row:last-child { border-bottom:none; }
+  .meta-label { font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted); }
+  .meta-value { font-weight:600; }
+
+  .qr-hash { font-family:monospace;font-size:10px;color:var(--text-muted);
+    word-break:break-all;padding:8px;background:rgba(0,0,0,0.25);border-radius:8px;margin-bottom:20px; }
+
+  .action-btns { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px; }
+  .btn-dl {
+    background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);border-radius:12px;
+    color:#fff;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;padding:12px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s;
+  }
+  .btn-dl:hover { background:rgba(255,255,255,0.12);transform:translateY(-1px); }
+
+  /* PDF TEMPLATE (hidden) */
+  #pdfTemplate {
+    display:none;position:fixed;top:-9999px;left:-9999px;
+    width:595px;background:#fff;padding:40px;
+    font-family:'Outfit',Arial,sans-serif;color:#1a1a2e;
+  }
+  #pdfTemplate .pdf-header { display:flex;justify-content:space-between;align-items:center;
+    border-bottom:3px solid #7a5cff;padding-bottom:16px;margin-bottom:24px; }
+  #pdfTemplate .pdf-brand { font-size:22px;font-weight:700;
+    background:linear-gradient(135deg,#ff4ecd,#7a5cff);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+  #pdfTemplate .pdf-badge { background:#f0ebff;color:#7a5cff;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600; }
+  #pdfTemplate table { width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px; }
+  #pdfTemplate table td { padding:10px 12px;border-bottom:1px solid #eee; }
+  #pdfTemplate table td:first-child { color:#888;width:40%;font-size:11px;text-transform:uppercase; }
+  #pdfTemplate .pdf-qr-section { display:flex;gap:24px;align-items:flex-start;
+    background:#f9f7ff;border-radius:12px;padding:20px;margin-bottom:20px; }
+  #pdfTemplate .pdf-qr-section img { width:130px;height:130px;border-radius:8px;border:3px solid #7a5cff;padding:4px;background:#fff; }
+  #pdfTemplate .pdf-hash { font-family:monospace;font-size:10px;color:#444;word-break:break-all;
+    background:#eee;padding:6px 8px;border-radius:6px;margin-bottom:10px; }
+  #pdfTemplate .pdf-footer { border-top:1px solid #eee;padding-top:12px;font-size:11px;color:#aaa;
+    display:flex;justify-content:space-between; }
+</style>
+</head>
+<body>
+
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+
+<nav class="menu-panel" id="menu">
+  <a href="home.html">🏠 Home</a>
+  <a href="doctor_login.html">👨‍⚕ Doctor Login</a>
+  <a href="pharmacist_login.html">💊 Pharmacist Login</a>
+  <a href="admin_login.html">🛡 Admin Login</a>
+  <a href="doctor.html">📝 Prescription Panel</a>
+  <a href="verify.html">✅ Verify QR</a>
+</nav>
+
+<header class="navbar-custom">
+  <div class="menu-icon" onclick="toggleMenu()"><div></div><div></div><div></div></div>
+  <a href="home.html" class="brand">AEGISMEDLABS</a>
+  <div style="width:38px"></div>
+</header>
+
+<div class="page-wrap" style="align-items:flex-start;padding-top:50px;">
+  <div style="width:100%;max-width:600px;position:relative;z-index:1;">
+
+    <!-- STEP DOTS -->
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot1"></div>
+      <div style="width:24px;height:1px;background:rgba(255,255,255,0.15)"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div style="width:24px;height:1px;background:rgba(255,255,255,0.15)"></div>
+      <div class="step-dot" id="dot3"></div>
+    </div>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="page-chip">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1a4 4 0 1 1 0 8A4 4 0 0 1 8 1zM2 14c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        Doctor Terminal
+      </div>
+      <div class="page-title">Prescription Panel</div>
+      <div class="page-subtitle">Generate blockchain-secured prescriptions with QR codes</div>
+    </div>
+
+    <!-- PRESCRIPTION FORM -->
+    <div class="glass-sheet" id="formSection">
+
+      <form id="prescriptionForm">
+
+        <div class="mb-4">
+          <label class="form-label">Patient Name</label>
+          <input type="text" class="form-control" id="patient_name" placeholder="e.g. Rahul Sharma" required autofocus>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Medicine</label>
+          <input type="text" class="form-control" id="medicine" placeholder="e.g. Amoxicillin 500mg" required>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Dosage & Instructions</label>
+          <input type="text" class="form-control" id="dosage" placeholder="e.g. 1 tablet twice daily" required>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-6">
+            <label class="form-label">Validity (Days)</label>
+            <input type="number" class="form-control" id="validity" placeholder="7" min="1" required>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Max Usage</label>
+            <input type="number" class="form-control" id="max_usage" value="1" min="1">
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Diagnosis / Notes</label>
+          <input type="text" class="form-control" id="diagnosis" placeholder="e.g. Bacterial infection">
+        </div>
+
+        <button type="submit" class="btn-luxury" id="generateBtn">
+          💊 Generate Prescription &amp; QR
+        </button>
+
+      </form>
+    </div>
+
+    <!-- QR RESULT SECTION -->
+    <div id="qrSection" style="display:none;">
+      <div class="qr-result-box">
+
+        <div class="success-badge">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="7" cy="7" r="7" fill="#8affc1" fill-opacity="0.2"/>
+            <path d="M4 7l2 2 4-4" stroke="#8affc1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Prescription Generated Successfully
+        </div>
+
+        <div class="qr-wrapper">
+          <img id="qrImage" width="200" height="200" alt="QR Code">
+        </div>
+
+        <div class="meta-grid" id="prescriptionMeta"></div>
+        <div class="qr-hash" id="qrHash"></div>
+
+        <div class="action-btns">
+          <button class="btn-dl" onclick="downloadQRImage()">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1v10M4 7l4 4 4-4M2 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Save QR Image
+          </button>
+          <button class="btn-dl" onclick="downloadPDF()" style="border-color:rgba(122,92,255,0.4);color:#c4b5ff;">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M4 5V2h8v3M4 11H2V6h12v5h-2M4 9h8v5H4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Save as PDF
+          </button>
+        </div>
+
+        <button class="btn-luxury" onclick="resetForm()" style="margin-top:8px;">
+          ➕ Create New Prescription
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- HIDDEN PDF TEMPLATE -->
+<div id="pdfTemplate">
+  <div class="pdf-header">
+    <div class="pdf-brand">AEGISMEDLABS</div>
+    <div class="pdf-badge">BLOCKCHAIN VERIFIED</div>
+  </div>
+  <div style="font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;">Medical Prescription</div>
+  <table id="pdfTable"></table>
+  <div class="pdf-qr-section">
+    <img id="pdfQrImg" src="" alt="QR">
+    <div style="flex:1;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#888;margin-bottom:6px;">SHA-256 Hash</div>
+      <div class="pdf-hash" id="pdfHash"></div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#888;margin-bottom:6px;">Prescription ID</div>
+      <div class="pdf-hash" id="pdfPrescId"></div>
+      <div style="background:#e8fff3;color:#1a7a4a;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:600;display:inline-block;margin-top:8px;">✓ Valid &amp; Blockchain Secured</div>
+    </div>
+  </div>
+  <div class="pdf-footer">
+    <span>Generated by AEGIS MED LABS System</span>
+    <span id="pdfDate"></span>
+  </div>
+</div>
+
+<div class="toast-notif" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+function toggleMenu() {
+  document.getElementById('menu').classList.toggle('open');
+  document.getElementById('menuOverlay').classList.toggle('show');
+}
+
+function showToast(msg, dur=3000) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+let currentData = {};
+
+document.getElementById('prescriptionForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('generateBtn');
+  btn.innerHTML = '<span class="spinner"></span> Generating...';
+  btn.disabled = true;
+
+  document.getElementById('dot2').classList.add('active');
+
+  const today  = new Date();
+  const expiry = new Date();
+  const validityDays = parseInt(document.getElementById('validity').value) || 7;
+  expiry.setDate(today.getDate() + validityDays);
+  const fmt = d => d.toISOString().split('T')[0];
+
+  try {
+    const res = await fetch('http://127.0.0.1:8000/prescriptions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        doctor_id: 1, patient_id: 1,
+        medicines: document.getElementById('medicine').value,
+        notes:     document.getElementById('dosage').value,
+        diagnosis: document.getElementById('diagnosis').value || document.getElementById('patient_name').value,
+        issue_date:  fmt(today),
+        expiry_date: fmt(expiry)
+      })
+    });
+    const data = await res.json();
+    buildQRSection(data, fmt(today), fmt(expiry), validityDays);
+  } catch(err) {
+    // Demo fallback
+    buildQRSection({
+      id: 'DEMO-' + Math.floor(Math.random()*9000+1000),
+      qr_code: document.getElementById('medicine').value + '-' + Date.now(),
+      hash: 'sha256-demo-' + Math.random().toString(36).substring(2,18)
+    }, fmt(today), fmt(expiry), validityDays);
+    showToast('⚡ Demo mode — QR generated locally');
+  }
+});
+
+function buildQRSection(data, issueDate, expiryDate, validityDays) {
+  currentData = {
+    patient:        document.getElementById('patient_name').value,
+    medicine:       document.getElementById('medicine').value,
+    dosage:         document.getElementById('dosage').value,
+    diagnosis:      document.getElementById('diagnosis').value || '—',
+    validity:       validityDays + ' days',
+    issueDate,
+    expiryDate,
+    prescriptionId: data.id || data.prescription_id || '—',
+    qrCode:         data.qr_code,
+    hash:           data.hash || data.blockchain_tx || data.qr_code
+  };
+
+  const qrURL = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(data.qr_code);
+  document.getElementById('qrImage').src = qrURL;
+
+  document.getElementById('prescriptionMeta').innerHTML = [
+    ['Patient',   currentData.patient],
+    ['Medicine',  currentData.medicine],
+    ['Dosage',    currentData.dosage],
+    ['Diagnosis', currentData.diagnosis],
+    ['Valid Until', currentData.expiryDate],
+    ['Rx ID',     '#' + currentData.prescriptionId]
+  ].map(([k,v]) => `<div class="meta-row"><span class="meta-label">${k}</span><span class="meta-value">${v}</span></div>`).join('');
+
+  document.getElementById('qrHash').textContent = 'Hash: ' + currentData.hash;
+
+  document.getElementById('formSection').style.display = 'none';
+  document.getElementById('qrSection').style.display = 'block';
+  document.getElementById('dot3').classList.add('active');
+
+  // Increment rxCount in localStorage
+  localStorage.setItem('rxCount', (parseInt(localStorage.getItem('rxCount') || '0') + 1).toString());
+
+  document.getElementById('qrSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function downloadQRImage() {
+  const link = document.createElement('a');
+  link.href = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + encodeURIComponent(currentData.qrCode);
+  link.download = 'rx_qr_' + currentData.prescriptionId + '.png';
+  link.target = '_blank';
+  link.click();
+}
+
+async function downloadPDF() {
+  const btn = event.target;
+  btn.innerHTML = '⏳ Generating PDF...';
+  btn.disabled = true;
+
+  document.getElementById('pdfTable').innerHTML = [
+    ['Patient Name', currentData.patient],
+    ['Medicine',     currentData.medicine],
+    ['Dosage',       currentData.dosage],
+    ['Diagnosis',    currentData.diagnosis],
+    ['Issue Date',   currentData.issueDate],
+    ['Expiry Date',  currentData.expiryDate],
+    ['Validity',     currentData.validity],
+    ['Prescription ID', '#' + currentData.prescriptionId]
+  ].map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+
+  const qrURL = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(currentData.qrCode);
+  document.getElementById('pdfQrImg').src = qrURL;
+  document.getElementById('pdfHash').textContent    = currentData.hash;
+  document.getElementById('pdfPrescId').textContent = '#' + currentData.prescriptionId;
+  document.getElementById('pdfDate').textContent    = new Date().toLocaleString();
+
+  await new Promise(resolve => {
+    const img = document.getElementById('pdfQrImg');
+    if (img.complete) resolve(); else img.onload = resolve;
+  });
+
+  const el = document.getElementById('pdfTemplate');
+  el.style.cssText = 'display:block;position:absolute;top:0;left:0;';
+  await new Promise(r => setTimeout(r, 300));
+
+  try {
+    const canvas = await html2canvas(el, { scale:2, useCORS:true, backgroundColor:'#fff' });
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'px', format:'a4' });
+    const pw = pdf.internal.pageSize.getWidth();
+    const ph = pdf.internal.pageSize.getHeight();
+    pdf.addImage(imgData, 'PNG', 0, 0, pw, Math.min((canvas.height * pw / canvas.width), ph));
+    pdf.save('prescription_' + currentData.prescriptionId + '.pdf');
+  } catch(err) {
+    showToast('⚠️ PDF failed — try Save QR Image instead');
+  }
+
+  el.style.display = 'none';
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 5V2h8v3M4 11H2V6h12v5h-2M4 9h8v5H4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Save as PDF`;
+  btn.disabled = false;
+}
+
+function resetForm() {
+  document.getElementById('prescriptionForm').reset();
+  document.getElementById('formSection').style.display = 'block';
+  document.getElementById('qrSection').style.display = 'none';
+  ['dot2','dot3'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('patient_name').focus();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
