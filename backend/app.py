@@ -8,6 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from datetime import date
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
 import uuid
 import hashlib
 
@@ -16,6 +19,24 @@ from database.db_config import SessionLocal
 from database.models import Doctor, Patient, Prescription, QRCode, Medicine
 
 app = FastAPI(title="Secure Digital Prescription Integrity System")
+templates = Jinja2Templates(directory="../frontend/templates")
+app.mount("/static", StaticFiles(directory="../frontend/static"), name="static")
+
+@app.get("/home")
+def home(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+
+@app.get("/doctor")
+def doctor_page(request: Request):
+    return templates.TemplateResponse("doctor_login.html", {"request": request})
+
+@app.get("/pharmacist")
+def pharmacist_page(request: Request):
+    return templates.TemplateResponse("pharmacist_login.html", {"request": request})
+
+@app.get("/admin")
+def admin_page(request: Request):
+    return templates.TemplateResponse("admin_login.html", {"request": request})
 
 # ---------------- CORS ----------------
 app.add_middleware(
