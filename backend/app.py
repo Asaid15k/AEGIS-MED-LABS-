@@ -20,10 +20,11 @@ from database.models import Doctor, Patient, Prescription, QRCode, Medicine
 
 app = FastAPI(title="Secure Digital Prescription Integrity System")
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "frontend", "templates"))
-app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "frontend", "static")), name="static")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
 
+templates = Jinja2Templates(directory=os.path.join(FRONTEND_DIR, "templates"))
+app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR, "static")), name="static")
 @app.get("/home")
 def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
