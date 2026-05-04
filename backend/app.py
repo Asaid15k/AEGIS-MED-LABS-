@@ -34,13 +34,33 @@ def home(request: Request):
 def doctor_page(request: Request):
     return templates.TemplateResponse(request=request, name="doctor_login.html")
 
+@app.get("/doctor-register")
+def doctor_register(request: Request):
+    return templates.TemplateResponse(request=request, name="doctor_register.html")
+
+@app.get("/doctor-panel")
+def doctor_panel(request: Request):
+    return templates.TemplateResponse(request=request, name="doctor.html")
+
 @app.get("/pharmacist")
 def pharmacist_page(request: Request):
     return templates.TemplateResponse(request=request, name="pharmacist_login.html")
 
+@app.get("/pharmacist-register")
+def pharmacist_register(request: Request):
+    return templates.TemplateResponse(request=request, name="pharmacist_register.html")
+
 @app.get("/admin")
 def admin_page(request: Request):
     return templates.TemplateResponse(request=request, name="admin_login.html")
+
+@app.get("/admin-dashboard")
+def admin_dashboard(request: Request):
+    return templates.TemplateResponse(request=request, name="admin_dashboard.html")
+
+@app.get("/verify")
+def verify_page(request: Request):
+    return templates.TemplateResponse(request=request, name="verify.html")
 
 templates = Jinja2Templates(directory=os.path.join(FRONTEND_DIR, "templates"))
 app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR, "static")), name="static")
