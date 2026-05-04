@@ -136,7 +136,7 @@ function showToast(msg, dur=2500) {
 async function refreshStats() {
   document.getElementById('lastRefresh').textContent = 'Updated ' + new Date().toLocaleTimeString();
   try {
-    const res = await fetch('http://127.0.0.1:8000/admin/stats');
+    const res = await fetch('https://aegis-med-labs-production.up.railway.app');
     const data = await res.json();
     document.getElementById('rxCount').textContent     = data.total_prescriptions ?? 0;
     document.getElementById('verifyCount').textContent = data.total_verifications ?? 0;
