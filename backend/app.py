@@ -19,6 +19,9 @@ from database.db_config import SessionLocal
 from database.models import Doctor, Patient, Prescription, QRCode, Medicine
 
 app = FastAPI(title="Secure Digital Prescription Integrity System")
+from database.models import Base
+from database.db_config import engine
+Base.metadata.create_all(bind=engine)
 
 # ---------------- CORS ----------------
 app.add_middleware(
