@@ -522,9 +522,7 @@
   .result-invalid-title { font-size: 17px; font-weight: 700; color: var(--brand-red); }
   .result-invalid-sub   { font-size: 12px; color: rgba(255,94,122,0.6); margin-top: 2px; }
 
-  .prescription-data {
-    padding: 18px 20px;
-  }
+  .prescription-data { padding: 18px 20px; }
   .rx-section-label {
     font-size: 10px;
     text-transform: uppercase;
@@ -559,7 +557,6 @@
     word-break: break-word;
   }
 
-  /* ── BLOCKCHAIN SECTION ── */
   .blockchain-section {
     margin: 0 20px 16px;
     background: rgba(78,159,255,0.06);
@@ -585,30 +582,16 @@
     justify-content: center;
     flex-shrink: 0;
   }
-  .blockchain-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--brand-blue);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-  .blockchain-subtitle {
-    font-size: 11px;
-    color: rgba(78,159,255,0.6);
-    margin-top: 1px;
-  }
+  .blockchain-title { font-size: 13px; font-weight: 700; color: var(--brand-blue); letter-spacing: 0.06em; text-transform: uppercase; }
+  .blockchain-subtitle { font-size: 11px; color: rgba(78,159,255,0.6); margin-top: 1px; }
   .blockchain-verified-badge {
     margin-left: auto;
     background: rgba(138,255,193,0.12);
     border: 1px solid rgba(138,255,193,0.3);
     border-radius: 50px;
     padding: 3px 10px;
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--brand-green);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    white-space: nowrap;
+    font-size: 10px; font-weight: 700; color: var(--brand-green);
+    letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
   }
   .blockchain-unverified-badge {
     margin-left: auto;
@@ -616,276 +599,128 @@
     border: 1px solid rgba(255,209,50,0.3);
     border-radius: 50px;
     padding: 3px 10px;
-    font-size: 10px;
-    font-weight: 700;
-    color: #ffd132;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    white-space: nowrap;
+    font-size: 10px; font-weight: 700; color: #ffd132;
+    letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
   }
-  .blockchain-body {
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .bc-row {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .bc-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: rgba(78,159,255,0.6);
-    font-weight: 600;
-  }
+  .blockchain-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .bc-row { display: flex; flex-direction: column; gap: 4px; }
+  .bc-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(78,159,255,0.6); font-weight: 600; }
   .bc-value {
-    font-family: 'Courier New', monospace;
-    font-size: 11px;
-    color: rgba(200,225,255,0.85);
-    word-break: break-all;
-    line-height: 1.5;
-    background: rgba(0,0,0,0.2);
-    border-radius: 8px;
-    padding: 8px 10px;
+    font-family: 'Courier New', monospace; font-size: 11px;
+    color: rgba(200,225,255,0.85); word-break: break-all; line-height: 1.5;
+    background: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px 10px;
     border: 1px solid rgba(78,159,255,0.1);
   }
-  .bc-value.hash-highlight {
-    color: #7dd4ff;
-  }
+  .bc-value.hash-highlight { color: #7dd4ff; }
   .bc-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    color: var(--brand-blue);
-    text-decoration: none;
-    margin-top: 4px;
-    opacity: 0.8;
-    transition: opacity 0.2s;
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--brand-blue); text-decoration: none;
+    margin-top: 4px; opacity: 0.8; transition: opacity 0.2s;
   }
   .bc-link:hover { opacity: 1; color: var(--brand-blue); }
   .bc-copy-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: rgba(78,159,255,0.1);
-    border: 1px solid rgba(78,159,255,0.2);
-    border-radius: 6px;
-    color: var(--brand-blue);
-    font-size: 10px;
-    font-weight: 600;
-    padding: 3px 8px;
-    cursor: pointer;
-    font-family: 'Outfit', sans-serif;
-    letter-spacing: 0.05em;
-    transition: all 0.2s;
-    margin-top: 4px;
-    width: fit-content;
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(78,159,255,0.1); border: 1px solid rgba(78,159,255,0.2);
+    border-radius: 6px; color: var(--brand-blue); font-size: 10px; font-weight: 600;
+    padding: 3px 8px; cursor: pointer; font-family: 'Outfit', sans-serif;
+    letter-spacing: 0.05em; transition: all 0.2s; margin-top: 4px; width: fit-content;
   }
   .bc-copy-btn:hover { background: rgba(78,159,255,0.2); }
 
   .medicine-pill {
     background: linear-gradient(135deg, rgba(255,78,205,0.15), rgba(122,92,255,0.15));
     border: 1px solid rgba(255,78,205,0.25);
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin: 12px 20px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #e8d5ff;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    border-radius: 8px; padding: 10px 14px; margin: 12px 20px;
+    font-size: 14px; font-weight: 600; color: #e8d5ff;
+    display: flex; align-items: center; gap: 10px;
   }
 
   .dispense-section {
-    margin: 0 20px 18px;
-    padding: 16px;
-    background: rgba(138,255,193,0.05);
-    border: 1px solid rgba(138,255,193,0.2);
-    border-radius: 14px;
+    margin: 0 20px 18px; padding: 16px;
+    background: rgba(138,255,193,0.05); border: 1px solid rgba(138,255,193,0.2); border-radius: 14px;
   }
   .dispense-section h4 {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--brand-green);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 7px;
+    font-size: 13px; font-weight: 700; color: var(--brand-green);
+    letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 7px;
   }
-  .dispense-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: rgba(138,255,193,0.7);
-    padding: 4px 0;
-  }
+  .dispense-row { display: flex; justify-content: space-between; font-size: 12px; color: rgba(138,255,193,0.7); padding: 4px 0; }
 
   .btn-dispense {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 9px;
-    width: calc(100% - 40px);
-    margin: 0 20px 20px;
-    padding: 14px;
-    background: linear-gradient(135deg, #1a7a4a, #2fa86e);
-    border: none;
-    border-radius: 12px;
-    color: #fff;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    letter-spacing: 0.05em;
-    transition: all 0.25s;
-    text-transform: uppercase;
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    width: calc(100% - 40px); margin: 0 20px 20px; padding: 14px;
+    background: linear-gradient(135deg, #1a7a4a, #2fa86e); border: none;
+    border-radius: 12px; color: #fff; font-family: 'Outfit', sans-serif;
+    font-weight: 700; font-size: 14px; cursor: pointer; letter-spacing: 0.05em;
+    transition: all 0.25s; text-transform: uppercase;
   }
   .btn-dispense:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(47,168,110,0.4); }
   .btn-dispense:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
   .invalid-reason-box {
-    margin: 0 20px 20px;
-    padding: 14px 16px;
-    background: rgba(255,94,122,0.08);
-    border: 1px solid rgba(255,94,122,0.2);
-    border-radius: 12px;
-    font-size: 13px;
-    color: rgba(255,180,180,0.85);
-    line-height: 1.6;
+    margin: 0 20px 20px; padding: 14px 16px;
+    background: rgba(255,94,122,0.08); border: 1px solid rgba(255,94,122,0.2); border-radius: 12px;
+    font-size: 13px; color: rgba(255,180,180,0.85); line-height: 1.6;
   }
   .invalid-reason-box strong {
-    display: block;
-    margin-bottom: 4px;
-    color: var(--brand-red);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    display: block; margin-bottom: 4px; color: var(--brand-red);
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
   }
 
   .dispense-confirmed {
-    display: none;
-    margin: 0 20px 20px;
-    padding: 16px;
-    background: rgba(138,255,193,0.08);
-    border: 1px solid rgba(138,255,193,0.25);
-    border-radius: 12px;
-    text-align: center;
+    display: none; margin: 0 20px 20px; padding: 16px;
+    background: rgba(138,255,193,0.08); border: 1px solid rgba(138,255,193,0.25);
+    border-radius: 12px; text-align: center;
   }
   .dispense-confirmed.show { display: block; }
   .dispense-confirmed p { font-size: 14px; font-weight: 600; color: var(--brand-green); }
   .dispense-confirmed small { font-size: 11px; color: rgba(138,255,193,0.5); display: block; margin-top: 4px; }
 
   .usage-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: rgba(255,78,205,0.12);
-    border: 1px solid rgba(255,78,205,0.25);
-    border-radius: 50px;
-    padding: 3px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #ff9de5;
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,78,205,0.12); border: 1px solid rgba(255,78,205,0.25);
+    border-radius: 50px; padding: 3px 10px; font-size: 11px; font-weight: 600; color: #ff9de5;
   }
 
-  .expiry-ok  { color: var(--brand-green) !important; }
+  .expiry-ok   { color: var(--brand-green) !important; }
   .expiry-warn { color: #ffd166 !important; }
   .expiry-bad  { color: var(--brand-red) !important; }
 
   .btn-scan-again {
-    width: 100%;
-    padding: 13px;
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    color: #fff;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
-    letter-spacing: 0.04em;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 16px;
+    width: 100%; padding: 13px;
+    background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px;
+    color: #fff; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 13px;
+    cursor: pointer; letter-spacing: 0.04em; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px;
   }
   .btn-scan-again:hover { background: rgba(255,255,255,0.1); }
 
-  .verify-footer {
-    margin-top: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+  .verify-footer { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
   .verify-footer-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    color: var(--text-muted);
-    padding: 10px 14px;
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    border-radius: 10px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--text-muted); padding: 10px 14px;
+    background: var(--glass); border: 1px solid var(--glass-border); border-radius: 10px;
   }
 
   .toast-notif {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
+    position: fixed; bottom: 24px; left: 50%;
     transform: translateX(-50%) translateY(80px);
-    background: rgba(20,15,40,0.96);
-    border: 1px solid var(--glass-border);
-    border-radius: 50px;
-    padding: 12px 20px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #fff;
-    backdrop-filter: blur(20px);
-    z-index: 9999;
+    background: rgba(20,15,40,0.96); border: 1px solid var(--glass-border); border-radius: 50px;
+    padding: 12px 20px; font-size: 13px; font-weight: 500; color: #fff;
+    backdrop-filter: blur(20px); z-index: 9999;
     transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    white-space: nowrap; display: flex; align-items: center; gap: 8px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.5);
   }
   .toast-notif.show { transform: translateX(-50%) translateY(0); }
 
-  .camera-select-row {
-    padding: 10px 16px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  .camera-select-row { padding: 10px 16px 0; display: flex; align-items: center; gap: 8px; }
   .camera-select-row select {
-    flex: 1;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    color: #fff;
-    font-family: 'Outfit', sans-serif;
-    font-size: 12px;
-    padding: 7px 10px;
-    appearance: none;
+    flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 8px;
+    color: #fff; font-family: 'Outfit', sans-serif; font-size: 12px; padding: 7px 10px; appearance: none;
   }
   .camera-select-row select option { background: #1a1030; }
-  .camera-select-label {
-    font-size: 11px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    flex-shrink: 0;
-  }
+  .camera-select-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0; }
 
   @media (max-width: 380px) {
     .scan-tab { font-size: 12px; padding: 10px 8px; }
@@ -1123,12 +958,29 @@ async function startCamera() {
   try {
     if (!window.ZXing) throw new Error('ZXing not loaded');
     codeReader = new ZXing.BrowserMultiFormatReader();
-    const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
-    if (!devices || devices.length === 0) throw new Error('No camera found');
+
+    // ── FIX: listVideoInputDevices() removed in ZXing 0.19.x ──
+    // Use native mediaDevices API instead, then request permission
+    // so labels are populated before we enumerate
+    let stream = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      stream.getTracks().forEach(t => t.stop()); // just for permission, stop immediately
+    } catch(permErr) {
+      throw new Error('Camera permission denied');
+    }
+
+    const allDevices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = allDevices.filter(d => d.kind === 'videoinput');
+    if (!videoDevices || videoDevices.length === 0) throw new Error('No camera found');
+
+    // Normalize to same shape the old ZXing API returned
+    const devices = videoDevices.map(d => ({ deviceId: d.deviceId, label: d.label || '' }));
     availableDevices = devices;
     populateCameraSelect(devices);
     selectedDeviceId = getBestCamera(devices);
     await beginDecoding(selectedDeviceId);
+
     document.getElementById('cameraIdle').style.display = 'none';
     document.getElementById('qrVideo').style.display = 'block';
     document.getElementById('scannerOverlay').style.display = 'flex';
@@ -1357,8 +1209,6 @@ function showResult(data, rawCode) {
     const daysLeft = Math.ceil((expiryDate - today) / 86400000);
     const expiryClass = daysLeft <= 0 ? 'expiry-bad' : daysLeft <= 2 ? 'expiry-warn' : 'expiry-ok';
     const expiryText = daysLeft <= 0 ? 'Expired' : daysLeft === 1 ? 'Expires tomorrow' : `Expires in ${daysLeft} days`;
-    const usedCount = data.usage_count ?? 0;
-    const maxUse = data.max_usage ?? 1;
 
     panel.innerHTML = `
       <div class="result-valid">
