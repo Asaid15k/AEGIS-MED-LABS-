@@ -38,10 +38,10 @@ from dotenv import load_dotenv
 from pathlib import Path
 load_dotenv(Path(__file__).parent / ".env")
 
-ALCHEMY_URL      = os.getenv("ALCHEMY_URL")
-PRIVATE_KEY      = os.getenv("PRIVATE_KEY")
-WALLET_ADDRESS   = os.getenv("WALLET_ADDRESS")
-CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS")
+ALCHEMY_URL      = os.getenv("ALCHEMY_URL", "").strip()
+PRIVATE_KEY      = os.getenv("PRIVATE_KEY", "").strip()
+WALLET_ADDRESS   = os.getenv("WALLET_ADDRESS", "").strip()
+CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS", "").strip()
 
 # ABI is stored locally in your project — no absolute path needed
 ABI_PATH = os.path.join(os.path.dirname(__file__), "contracts", "PrescriptionRegistry.abi.json")
