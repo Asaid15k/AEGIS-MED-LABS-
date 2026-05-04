@@ -1,3 +1,6 @@
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
 from dotenv import load_dotenv
 load_dotenv()
 import os
@@ -8,9 +11,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from datetime import date
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi import Request
 import uuid
 import hashlib
 
@@ -22,6 +22,25 @@ app = FastAPI(title="Secure Digital Prescription Integrity System")
 import os
 BASE_DIR = "/app"
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+
+templates = Jinja2Templates(directory=os.path.join(FRONTEND_DIR, "templates"))
+app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR, "static")), name="static")
+
+@app.get("/home")
+def home(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+
+@app.get("/doctor")
+def doctor_page(request: Request):
+    return templates.TemplateResponse("doctor_login.html", {"request": request})
+
+@app.get("/pharmacist")
+def pharmacist_page(request: Request):
+    return templates.TemplateResponse("pharmacist_login.html", {"request": request})
+
+@app.get("/admin")
+def admin_page(request: Request):
+    return templates.TemplateResponse("admin_login.html", {"request": request})
 
 templates = Jinja2Templates(directory=os.path.join(FRONTEND_DIR, "templates"))
 app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR, "static")), name="static")
