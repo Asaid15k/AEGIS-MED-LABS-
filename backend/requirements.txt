@@ -7,3 +7,4 @@ web3
 pydantic
 qrcode
 pillow
+jinja2
