@@ -19,6 +19,17 @@ from database.db_config import SessionLocal
 from database.models import Doctor, Patient, Prescription, QRCode, Medicine
 
 app = FastAPI(title="Secure Digital Prescription Integrity System")
+
+# ---------------- CORS ----------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ---------------- FRONTEND SETUP ----------------
 import os
 BASE_DIR = "/app"
 FRONTEND_DIR = "/app/frontend"
@@ -26,6 +37,7 @@ FRONTEND_DIR = "/app/frontend"
 templates = Jinja2Templates(directory=os.path.join(FRONTEND_DIR, "templates"))
 app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR, "static")), name="static")
 
+# ---------------- FRONTEND ROUTES ----------------
 @app.get("/home")
 def home(request: Request):
     return templates.TemplateResponse(request=request, name="home.html")
@@ -61,32 +73,6 @@ def admin_dashboard(request: Request):
 @app.get("/verify")
 def verify_page(request: Request):
     return templates.TemplateResponse(request=request, name="verify.html")
-
-templates = Jinja2Templates(directory=os.path.join(FRONTEND_DIR, "templates"))
-app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR, "static")), name="static")
-def home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
-
-@app.get("/doctor")
-def doctor_page(request: Request):
-    return templates.TemplateResponse("doctor_login.html", {"request": request})
-
-@app.get("/pharmacist")
-def pharmacist_page(request: Request):
-    return templates.TemplateResponse("pharmacist_login.html", {"request": request})
-
-@app.get("/admin")
-def admin_page(request: Request):
-    return templates.TemplateResponse("admin_login.html", {"request": request})
-
-# ---------------- CORS ----------------
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # ---------------- DATABASE SESSION ----------------
 def get_db():
@@ -196,13 +182,10 @@ def create_prescription(prescription: PrescriptionCreate, db: Session = Depends(
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
 
-    # Generate deterministic hash from prescription data (not random)
-    # This means the hash PROVES what the prescription contained
     raw = f"{prescription.doctor_id}|{prescription.patient_id}|{prescription.diagnosis}|{prescription.issue_date}|{prescription.expiry_date}|{uuid.uuid4()}"
     blockchain_hash = hashlib.sha256(raw.encode()).hexdigest()
     blockchain_hash_bytes = bytes.fromhex(blockchain_hash)
 
-    # Save prescription to DB
     new_prescription = Prescription(
         doctor_id=prescription.doctor_id,
         patient_id=prescription.patient_id,
@@ -219,16 +202,13 @@ def create_prescription(prescription: PrescriptionCreate, db: Session = Depends(
     db.commit()
     db.refresh(new_prescription)
 
-    # Store hash on Polygon Amoy blockchain (automatic, no manual steps)
     try:
         tx_hash = store_hash(new_prescription.id, blockchain_hash_bytes)
         print(f"[BLOCKCHAIN] TX confirmed: {tx_hash}")
     except Exception as e:
-        # Don't fail the whole request if blockchain is slow — hash is in DB
         print(f"[BLOCKCHAIN] Warning: {e}")
         tx_hash = None
 
-    # Generate QR code (UUID — unique, not guessable)
     unique_qr_value = str(uuid.uuid4())
     qr_code = QRCode(
         qr_value=unique_qr_value,
@@ -270,7 +250,11 @@ def verify_qr(qr_value: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Invalid QR Code — not found")
 
     if not qr.is_active:
-            return {"valid": False, "status": "already_dispensed", "reason": "This prescription has already been dispensed and cannot be used again."}
+        return {
+            "valid": False,
+            "status": "already_dispensed",
+            "reason": "This prescription has already been dispensed and cannot be used again."
+        }
 
     # 2. Find prescription
     prescription = db.query(Prescription).filter(
@@ -284,38 +268,46 @@ def verify_qr(qr_value: str, db: Session = Depends(get_db)):
         return {
             "valid": False,
             "status": "expired",
-            "reason": f"Prescription expired on {prescription.expiry_date}"
+            "reason": f"Prescription expired on {prescription.expiry_date}",
+            "blockchain_hash": prescription.blockchain_hash
         }
 
-    # 4. Blockchain tamper check (compares DB hash vs on-chain hash)
+    # 4. Blockchain tamper check
     tamper_detected = False
     blockchain_verified = False
+    tx_hash = None
+
     try:
         blockchain_verified = verify_on_chain(
             prescription.id,
             prescription.blockchain_hash
         )
         if not blockchain_verified:
-            # Hash mismatch — data was changed after creation
             prescription.is_tampered = True
             prescription.verification_status = "Tampered"
             db.commit()
             tamper_detected = True
     except Exception as e:
         print(f"[BLOCKCHAIN] Verify error (non-fatal): {e}")
-        # If blockchain is unreachable, still return DB result
         blockchain_verified = None
 
     if tamper_detected:
         return {
             "valid": False,
             "status": "tampered",
-            "reason": "Blockchain hash mismatch — this prescription may have been altered"
+            "reason": "Blockchain hash mismatch — this prescription may have been altered",
+            "blockchain_hash": prescription.blockchain_hash
         }
 
     # 5. Fetch doctor and patient names
     doctor = db.query(Doctor).filter(Doctor.id == prescription.doctor_id).first()
     patient = db.query(Patient).filter(Patient.id == prescription.patient_id).first()
+
+    # 6. Try to get tx_hash from blockchain logs (if stored in QR or prescription)
+    try:
+        tx_hash = getattr(prescription, 'tx_hash', None)
+    except Exception:
+        tx_hash = None
 
     return {
         "valid": True,
@@ -328,17 +320,17 @@ def verify_qr(qr_value: str, db: Session = Depends(get_db)):
         "expiry_date": str(prescription.expiry_date),
         "verification_status": prescription.verification_status,
         "blockchain_verified": blockchain_verified,
-        "blockchain_hash": prescription.blockchain_hash
+        "blockchain_hash": prescription.blockchain_hash,
+        "tx_hash": tx_hash
     }
 
-# ---------------- DISPENSE ENDPOINT (for pharmacist confirm button) ----------------
+# ---------------- DISPENSE ENDPOINT ----------------
 @app.post("/prescriptions/{prescription_id}/dispense")
 def dispense_prescription(prescription_id: int, db: Session = Depends(get_db)):
     prescription = db.query(Prescription).filter(Prescription.id == prescription_id).first()
     if not prescription:
         raise HTTPException(status_code=404, detail="Prescription not found")
 
-    # Deactivate QR so it can't be scanned again
     qr = db.query(QRCode).filter(QRCode.prescription_id == prescription_id).first()
     if qr:
         qr.is_active = False
