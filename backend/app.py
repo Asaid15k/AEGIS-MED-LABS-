@@ -28,19 +28,19 @@ app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR, "static"))
 
 @app.get("/home")
 def home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="home.html")
 
 @app.get("/doctor")
 def doctor_page(request: Request):
-    return templates.TemplateResponse("doctor_login.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="doctor_login.html")
 
 @app.get("/pharmacist")
 def pharmacist_page(request: Request):
-    return templates.TemplateResponse("pharmacist_login.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="pharmacist_login.html")
 
 @app.get("/admin")
 def admin_page(request: Request):
-    return templates.TemplateResponse("admin_login.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="admin_login.html")
 
 templates = Jinja2Templates(directory=os.path.join(FRONTEND_DIR, "templates"))
 app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR, "static")), name="static")
