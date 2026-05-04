@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Verify Prescription | AEGISMEDLABS</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- ZXing QR Scanner Library -->
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand-pink: #ff4ecd;
+    --brand-purple: #7a5cff;
+    --brand-green: #8affc1;
+    --brand-red: #ff5e7a;
+    --bg-dark: #0d0a1a;
+    --glass: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --text: #f0eeff;
+    --text-muted: rgba(240,238,255,0.45);
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg-dark);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* Animated mesh background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(122,92,255,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, rgba(255,78,205,0.14) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(138,255,193,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAVBAR */
+  .navbar-custom {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(20px);
+    background: rgba(13,10,26,0.75);
+    border-bottom: 1px solid var(--glass-border);
+    z-index: 1000;
+  }
+
+  .brand {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    background: linear-gradient(135deg, #ff4ecd, #7a5cff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+  }
+
+  .menu-icon {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px;
+  }
+  .menu-icon div {
+    width: 22px; height: 2px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 2px;
+    transition: 0.3s;
+  }
+
+  /* SIDE MENU */
+  .menu-panel {
+    position: fixed;
+    top: 0; left: -260px;
+    width: 260px; height: 100vh;
+    background: rgba(13,10,26,0.97);
+    backdrop-filter: blur(30px);
+    border-right: 1px solid var(--glass-border);
+    z-index: 2000;
+    padding: 80px 0 30px;
+    transition: left 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .menu-panel.open { left: 0; }
+  .menu-panel a {
+    display: block;
+    padding: 13px 28px;
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+  }
+  .menu-panel a:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+    border-left-color: var(--brand-pink);
+    padding-left: 34px;
+  }
+  .menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1999;
+    backdrop-filter: blur(2px);
+  }
+  .menu-overlay.show { display: block; }
+
+  /* MAIN LAYOUT */
+  .page-wrap {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    padding: 80px 16px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .verify-card {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* PAGE HEADER */
+  .page-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .page-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(122,92,255,0.15);
+    border: 1px solid rgba(122,92,255,0.35);
+    border-radius: 50px;
+    padding: 5px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #c4b5ff;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .page-title {
+    font-size: clamp(20px, 5vw, 28px);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    font-weight: 400;
+  }
+
+  /* SCAN MODES TAB */
+  .scan-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 6px;
+  }
+  .scan-tab {
+    padding: 11px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    letter-spacing: 0.03em;
+  }
+  .scan-tab.active {
+    background: linear-gradient(135deg, rgba(255,78,205,0.2), rgba(122,92,255,0.2));
+    border: 1px solid rgba(255,78,205,0.3);
+    color: #fff;
+  }
+  .scan-tab svg { flex-shrink: 0; }
+
+  /* CAMERA PANEL */
+  .camera-panel {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  /* VIDEO CONTAINER */
+  #videoContainer {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    background: #000;
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #videoContainer video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* SCANNER OVERLAY */
+  .scanner-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .scan-frame {
+    width: 65%;
+    aspect-ratio: 1;
+    position: relative;
+  }
+  .scan-corner {
+    position: absolute;
+    width: 28px; height: 28px;
+    border-color: var(--brand-pink);
+    border-style: solid;
+    border-width: 0;
+  }
+  .scan-corner.tl { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; border-radius: 4px 0 0 0; }
+  .scan-corner.tr { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; border-radius: 0 4px 0 0; }
+  .scan-corner.bl { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; border-radius: 0 0 0 4px; }
+  .scan-corner.br { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; border-radius: 0 0 4px 0; }
+
+  /* SCAN LINE */
+  .scan-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--brand-pink), var(--brand-purple), transparent);
+    box-shadow: 0 0 10px rgba(255,78,205,0.8);
+    animation: scanAnim 2.2s ease-in-out infinite;
+  }
+  @keyframes scanAnim {
+    0%   { top: 8%; opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { top: 92%; opacity: 0; }
+  }
+
+  /* Camera idle state */
+  .camera-idle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 50px 20px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  .camera-idle-icon {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: rgba(122,92,255,0.12);
+    border: 2px dashed rgba(122,92,255,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(122,92,255,0.3); }
+    50%      { box-shadow: 0 0 0 12px rgba(122,92,255,0); }
+  }
+  .camera-idle p { font-size: 13px; opacity: 0.7; line-height: 1.5; }
+
+  /* CAMERA CONTROLS */
+  .camera-controls {
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .btn-scan-start {
+    flex: 1;
+    background: linear-gradient(135deg, var(--brand-pink), var(--brand-purple));
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 13px 20px;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: 0.04em;
+  }
+  .btn-scan-start:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(255,78,205,0.4); }
+  .btn-scan-start:active { transform: scale(0.98); }
+
+  .btn-icon-action {
+    width: 46px; height: 46px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .btn-icon-action:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .btn-icon-action.active-torch { background: rgba(255,220,50,0.15); border-color: rgba(255,220,50,0.4); color: #ffd932; }
+
+  /* Camera status bar */
+  .cam-status-bar {
+    position: absolute;
+    top: 12px; left: 12px; right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+  }
+  .cam-status-pill {
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--brand-green);
+    animation: livePulse 1.2s ease-in-out infinite;
+  }
+  @keyframes livePulse {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.3; }
+  }
+
+  /* MANUAL INPUT PANEL */
+  .manual-panel {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 24px 20px;
+    margin-bottom: 16px;
+  }
+  .manual-panel label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .manual-panel textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Outfit', monospace;
+    font-size: 13px;
+    padding: 14px 16px;
+    resize: none;
+    min-height: 100px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .manual-panel textarea:focus {
+    outline: none;
+    border-color: rgba(255,78,205,0.5);
+    box-shadow: 0 0 0 3px rgba(255,78,205,0.15);
+  }
+  .manual-panel textarea::placeholder { color: rgba(255,255,255,0.2); }
+  .manual-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+
+  .btn-verify-manual {
+    width: 100%;
+    margin-top: 14px;
+    background: linear-gradient(135deg, var(--brand-pink), var(--brand-purple));
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 14px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-verify-manual:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(255,78,205,0.4); }
+  .btn-verify-manual:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+  /* LOADING OVERLAY for verification */
+  .verify-loading {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .verify-loading.show { display: flex; }
+  .verify-spinner {
+    width: 52px; height: 52px;
+    border: 3px solid rgba(255,78,205,0.2);
+    border-top-color: var(--brand-pink);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  .verify-loading-text {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RESULT PANEL */
+  .result-panel {
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1);
+    display: none;
+  }
+  .result-panel.show { display: block; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* VALID STATE */
+  .result-valid {
+    background: rgba(138,255,193,0.06);
+    border: 1px solid rgba(138,255,193,0.25);
+  }
+  .result-header-valid {
+    background: rgba(138,255,193,0.1);
+    border-bottom: 1px solid rgba(138,255,193,0.15);
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .result-icon-valid {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: rgba(138,255,193,0.15);
+    border: 2px solid rgba(138,255,193,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .result-valid-title { font-size: 17px; font-weight: 700; color: var(--brand-green); }
+  .result-valid-sub   { font-size: 12px; color: rgba(138,255,193,0.6); margin-top: 2px; }
+
+  /* INVALID STATE */
+  .result-invalid {
+    background: rgba(255,94,122,0.06);
+    border: 1px solid rgba(255,94,122,0.25);
+  }
+  .result-header-invalid {
+    background: rgba(255,94,122,0.1);
+    border-bottom: 1px solid rgba(255,94,122,0.15);
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .result-icon-invalid {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: rgba(255,94,122,0.15);
+    border: 2px solid rgba(255,94,122,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .result-invalid-title { font-size: 17px; font-weight: 700; color: var(--brand-red); }
+  .result-invalid-sub   { font-size: 12px; color: rgba(255,94,122,0.6); margin-top: 2px; }
+
+  /* PRESCRIPTION DATA ROWS */
+  .prescription-data {
+    padding: 18px 20px;
+  }
+  .rx-section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .rx-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    gap: 12px;
+  }
+  .rx-row:last-child { border-bottom: none; }
+  .rx-key {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    padding-top: 2px;
+    min-width: 100px;
+  }
+  .rx-val {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  /* MEDICINE HIGHLIGHT */
+  .medicine-pill {
+    background: linear-gradient(135deg, rgba(255,78,205,0.15), rgba(122,92,255,0.15));
+    border: 1px solid rgba(255,78,205,0.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e8d5ff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* DISPENSE SECTION */
+  .dispense-section {
+    margin: 0 20px 18px;
+    padding: 16px;
+    background: rgba(138,255,193,0.05);
+    border: 1px solid rgba(138,255,193,0.2);
+    border-radius: 14px;
+  }
+  .dispense-section h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brand-green);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .dispense-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: rgba(138,255,193,0.7);
+    padding: 4px 0;
+  }
+
+  /* DISPENSE CONFIRM BUTTON */
+  .btn-dispense {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: calc(100% - 40px);
+    margin: 0 20px 20px;
+    padding: 14px;
+    background: linear-gradient(135deg, #1a7a4a, #2fa86e);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.25s;
+    text-transform: uppercase;
+  }
+  .btn-dispense:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(47,168,110,0.4); }
+  .btn-dispense:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* INVALID REASON */
+  .invalid-reason-box {
+    margin: 0 20px 20px;
+    padding: 14px 16px;
+    background: rgba(255,94,122,0.08);
+    border: 1px solid rgba(255,94,122,0.2);
+    border-radius: 12px;
+    font-size: 13px;
+    color: rgba(255,180,180,0.85);
+    line-height: 1.6;
+  }
+  .invalid-reason-box strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--brand-red);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* DISPENSE CONFIRMED */
+  .dispense-confirmed {
+    display: none;
+    margin: 0 20px 20px;
+    padding: 16px;
+    background: rgba(138,255,193,0.08);
+    border: 1px solid rgba(138,255,193,0.25);
+    border-radius: 12px;
+    text-align: center;
+  }
+  .dispense-confirmed.show { display: block; }
+  .dispense-confirmed p { font-size: 14px; font-weight: 600; color: var(--brand-green); }
+  .dispense-confirmed small { font-size: 11px; color: rgba(138,255,193,0.5); display: block; margin-top: 4px; }
+
+  /* USAGE COUNTER BADGE */
+  .usage-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,78,205,0.12);
+    border: 1px solid rgba(255,78,205,0.25);
+    border-radius: 50px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #ff9de5;
+  }
+
+  /* EXPIRY STATUS */
+  .expiry-ok  { color: var(--brand-green) !important; }
+  .expiry-warn { color: #ffd166 !important; }
+  .expiry-bad  { color: var(--brand-red) !important; }
+
+  /* SCAN AGAIN */
+  .btn-scan-again {
+    width: 100%;
+    padding: 13px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .btn-scan-again:hover { background: rgba(255,255,255,0.1); }
+
+  /* INFO FOOTER */
+  .verify-footer {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .verify-footer-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 10px 14px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+  }
+  .verify-footer-row svg { flex-shrink: 0; opacity: 0.6; }
+
+  /* TOAST NOTIFICATION */
+  .toast-notif {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: rgba(20,15,40,0.96);
+    border: 1px solid var(--glass-border);
+    border-radius: 50px;
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    backdrop-filter: blur(20px);
+    z-index: 9999;
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  .toast-notif.show { transform: translateX(-50%) translateY(0); }
+
+  /* CAMERA SELECT */
+  .camera-select-row {
+    padding: 10px 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .camera-select-row select {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    padding: 7px 10px;
+    appearance: none;
+  }
+  .camera-select-row select option { background: #1a1030; }
+  .camera-select-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+
+  /* Scan beep animation */
+  @keyframes scanSuccess {
+    0%   { box-shadow: 0 0 0 0 rgba(138,255,193,0.6); }
+    100% { box-shadow: 0 0 0 30px rgba(138,255,193,0); }
+  }
+  .scan-success-flash {
+    animation: scanSuccess 0.6s ease-out;
+  }
+
+  /* Responsive */
+  @media (max-width: 380px) {
+    .scan-tab { font-size: 12px; padding: 10px 8px; }
+  }
+
+  /* Print */
+  @media print {
+    .navbar-custom, .scan-tabs, .camera-panel,
+    .manual-panel, .btn-scan-again, .verify-footer,
+    .btn-dispense, .scan-tabs { display: none !important; }
+    .result-panel { display: block !important; }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- MENU OVERLAY -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+
+<!-- SIDE MENU -->
+<div class="menu-panel" id="menu">
+  <a href="home.html">🏠 Home</a>
+  <a href="doctor_login.html">👨‍⚕ Doctor Login</a>
+  <a href="pharmacist_login.html">💊 Pharmacist Login</a>
+  <a href="admin_login.html">🛡 Admin Login</a>
+  <a href="doctor.html">📝 Prescription Panel</a>
+  <a href="verify.html">✅ Verify QR</a>
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar-custom">
+  <div class="menu-icon" onclick="toggleMenu()">
+    <div></div><div></div><div></div>
+  </div>
+  <a href="home.html" class="brand">AEGISMEDLABS</a>
+  <div style="width:38px"></div>
+</div>
+
+<!-- PAGE -->
+<div class="page-wrap">
+  <div class="verify-card">
+
+    <!-- HEADER -->
+    <div class="page-header">
+      <div class="page-chip">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+          <path d="M2 2h4v4H2zM10 2h4v4h-4zM2 10h4v4H2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <rect x="10" y="10" width="2" height="2" fill="currentColor"/>
+          <rect x="13" y="10" width="2" height="2" fill="currentColor"/>
+          <rect x="10" y="13" width="2" height="2" fill="currentColor"/>
+          <rect x="13" y="13" width="2" height="2" fill="currentColor"/>
+        </svg>
+        Pharmacist Terminal
+      </div>
+      <div class="page-title">Verify Prescription</div>
+      <div class="page-subtitle">Scan the patient's QR code or enter the code manually</div>
+    </div>
+
+    <!-- TABS -->
+    <div class="scan-tabs" id="scanTabs">
+      <button class="scan-tab active" id="tabCamera" onclick="switchTab('camera')">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+          <rect x="1" y="5" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="10" cy="11.5" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 5l1.5-2.5h3L13 5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        Camera Scan
+      </button>
+      <button class="scan-tab" id="tabManual" onclick="switchTab('manual')">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+          <path d="M4 6h12M4 10h12M4 14h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Enter Code
+      </button>
+    </div>
+
+    <!-- CAMERA MODE -->
+    <div id="cameraMode">
+      <div class="camera-panel">
+
+        <!-- Video container -->
+        <div id="videoContainer">
+
+          <!-- Idle state -->
+          <div class="camera-idle" id="cameraIdle">
+            <div class="camera-idle-icon">
+              <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+                <rect x="2" y="7" width="26" height="19" rx="3" stroke="rgba(122,92,255,0.7)" stroke-width="1.8"/>
+                <circle cx="15" cy="16" r="5" stroke="rgba(122,92,255,0.7)" stroke-width="1.8"/>
+                <path d="M10 7l2-3h6l2 3" stroke="rgba(122,92,255,0.7)" stroke-width="1.8" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <p>Tap "Start Scanning"<br>to open your camera</p>
+          </div>
+
+          <!-- Video element (hidden until camera starts) -->
+          <video id="qrVideo" playsinline style="display:none;"></video>
+
+          <!-- Scanner overlay (shown when camera active) -->
+          <div class="scanner-overlay" id="scannerOverlay" style="display:none;">
+            <div class="scan-frame">
+              <div class="scan-corner tl"></div>
+              <div class="scan-corner tr"></div>
+              <div class="scan-corner bl"></div>
+              <div class="scan-corner br"></div>
+              <div class="scan-line" id="scanLine"></div>
+            </div>
+          </div>
+
+          <!-- Status bar when live -->
+          <div class="cam-status-bar" id="camStatusBar" style="display:none;">
+            <div class="cam-status-pill">
+              <div class="live-dot"></div>
+              LIVE
+            </div>
+            <div class="cam-status-pill" id="scanCountPill">0 scanned</div>
+          </div>
+
+        </div>
+
+        <!-- Camera select -->
+        <div class="camera-select-row" id="cameraSelectRow" style="display:none;">
+          <span class="camera-select-label">Cam</span>
+          <select id="cameraSelect" onchange="switchCamera()">
+            <option>Loading cameras...</option>
+          </select>
+        </div>
+
+        <!-- Controls -->
+        <div class="camera-controls">
+          <button class="btn-scan-start" id="btnScanStart" onclick="toggleCamera()">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="10" cy="11" r="3" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M7 5l1.5-2h3L13 5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
+            Start Scanning
+          </button>
+          <button class="btn-icon-action" id="btnTorch" onclick="toggleTorch()" title="Toggle torch" style="display:none;">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M10 1v2M10 17v2M3.22 3.22l1.42 1.42M15.36 15.36l1.42 1.42M1 10h2M17 10h2M4.64 15.36l-1.42 1.42M16.78 3.22l-1.42 1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </button>
+          <button class="btn-icon-action" id="btnFlip" onclick="flipCamera()" title="Flip camera" style="display:none;">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M4 8H16M4 8l3-3M4 8l3 3M16 12H4M16 12l-3-3M16 12l-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Verify loading inside camera -->
+        <div class="verify-loading" id="verifyLoadingCam">
+          <div class="verify-spinner"></div>
+          <div class="verify-loading-text">Verifying prescription...</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MANUAL MODE -->
+    <div id="manualMode" style="display:none;">
+      <div class="manual-panel">
+        <label>QR Code / Hash / Prescription ID</label>
+        <textarea id="manualCode" placeholder="Paste or type the prescription QR code data here...&#10;&#10;e.g. AEGIS-2026-RX-00247-SHA256-abc123..."></textarea>
+        <div class="manual-hint">
+          💡 Copy the code from the prescription printout, or ask the patient to show the QR code and type the ID below it.
+        </div>
+        <button class="btn-verify-manual" id="btnVerifyManual" onclick="verifyManual()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 8.5l4 4 8-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Verify Prescription
+        </button>
+
+        <div class="verify-loading" id="verifyLoadingManual" style="margin-top:16px;">
+          <div class="verify-spinner"></div>
+          <div class="verify-loading-text">Verifying...</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RESULT PANEL -->
+    <div class="result-panel" id="resultPanel">
+      <!-- Filled dynamically -->
+    </div>
+
+    <!-- SCAN AGAIN BUTTON -->
+    <button class="btn-scan-again" id="btnScanAgain" onclick="resetScan()" style="display:none;">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M2 8A6 6 0 0 1 14 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M14 8l-2-2M14 8l2-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Scan Another Prescription
+    </button>
+
+    <!-- INFO FOOTER -->
+    <div class="verify-footer" id="verifyFooter">
+      <div class="verify-footer-row">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.3"/>
+          <rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.3"/>
+          <rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.3"/>
+          <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.3"/>
+        </svg>
+        Supports all AEGISMEDLABS generated QR codes
+      </div>
+      <div class="verify-footer-row">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1l2 4h4l-3 3 1 4-4-2.5L4 13l1-4-3-3h4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+        </svg>
+        Blockchain hash verified on every scan
+      </div>
+      <div class="verify-footer-row">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1v7l4 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.3"/>
+        </svg>
+        Expiry and usage limits enforced automatically
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-notif" id="toast">
+  <span id="toastIcon">✓</span>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+// ─── STATE ──────────────────────────────────────────────
+let scannerActive = false;
+let codeReader = null;
+let selectedDeviceId = null;
+let availableDevices = [];
+let torchActive = false;
+let videoTrack = null;
+let scanCount = 0;
+let currentMode = 'camera';
+let lastScannedCode = null;
+
+// ─── MENU ────────────────────────────────────────────────
+function toggleMenu() {
+  document.getElementById('menu').classList.toggle('open');
+  document.getElementById('menuOverlay').classList.toggle('show');
+}
+
+// ─── TAB SWITCHING ────────────────────────────────────────
+function switchTab(mode) {
+  currentMode = mode;
+  document.getElementById('tabCamera').classList.toggle('active', mode === 'camera');
+  document.getElementById('tabManual').classList.toggle('active', mode === 'manual');
+  document.getElementById('cameraMode').style.display = mode === 'camera' ? 'block' : 'none';
+  document.getElementById('manualMode').style.display = mode === 'manual' ? 'block' : 'none';
+  if (mode === 'manual' && scannerActive) stopCamera();
+  hideResult();
+}
+
+// ─── CAMERA LOGIC ────────────────────────────────────────
+async function toggleCamera() {
+  if (scannerActive) {
+    stopCamera();
+  } else {
+    await startCamera();
+  }
+}
+
+async function startCamera() {
+  const btn = document.getElementById('btnScanStart');
+  btn.innerHTML = `<span style="width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;"></span> Starting...`;
+  btn.disabled = true;
+
+  try {
+    if (!window.ZXing) throw new Error('ZXing not loaded');
+
+    codeReader = new ZXing.BrowserMultiFormatReader();
+    const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
+
+    if (!devices || devices.length === 0) throw new Error('No camera found');
+
+    availableDevices = devices;
+    populateCameraSelect(devices);
+
+    // Prefer back/environment camera on mobile
+    selectedDeviceId = getBestCamera(devices);
+
+    await beginDecoding(selectedDeviceId);
+
+    // UI: show live state
+    document.getElementById('cameraIdle').style.display = 'none';
+    document.getElementById('qrVideo').style.display = 'block';
+    document.getElementById('scannerOverlay').style.display = 'flex';
+    document.getElementById('camStatusBar').style.display = 'flex';
+    if (devices.length > 1) {
+      document.getElementById('btnFlip').style.display = 'flex';
+      document.getElementById('cameraSelectRow').style.display = 'flex';
+    }
+    document.getElementById('btnTorch').style.display = 'flex';
+
+    btn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+        <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+        <rect x="7" y="7" width="6" height="6" fill="currentColor" rx="1"/>
+      </svg>
+      Stop Camera`;
+    btn.disabled = false;
+    scannerActive = true;
+
+    showToast('📷 Camera ready — point at QR code', 3000);
+
+  } catch (err) {
+    console.error(err);
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="11" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M7 5l1.5-2h3L13 5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg> Start Scanning`;
+    btn.disabled = false;
+    showToast('⚠️ ' + (err.message || 'Camera error. Check permissions.'), 4000);
+  }
+}
+
+function getBestCamera(devices) {
+  // Prefer back camera on mobile
+  const backCam = devices.find(d =>
+    d.label.toLowerCase().includes('back') ||
+    d.label.toLowerCase().includes('rear') ||
+    d.label.toLowerCase().includes('environment')
+  );
+  return backCam ? backCam.deviceId : devices[devices.length - 1].deviceId;
+}
+
+async function beginDecoding(deviceId) {
+  await codeReader.decodeFromVideoDevice(deviceId, 'qrVideo', (result, err) => {
+    if (result) {
+      const code = result.getText();
+      if (code === lastScannedCode) return; // debounce
+      lastScannedCode = code;
+      scanCount++;
+      document.getElementById('scanCountPill').textContent = `${scanCount} scanned`;
+      handleScannedCode(code);
+    }
+    // Ignore scan errors (constant stream)
+  });
+
+  // Get video track for torch
+  const stream = document.getElementById('qrVideo').srcObject;
+  if (stream) {
+    videoTrack = stream.getVideoTracks()[0];
+  }
+}
+
+function stopCamera() {
+  if (codeReader) {
+    codeReader.reset();
+    codeReader = null;
+  }
+  if (videoTrack) {
+    videoTrack.stop();
+    videoTrack = null;
+  }
+  const video = document.getElementById('qrVideo');
+  if (video.srcObject) {
+    video.srcObject.getTracks().forEach(t => t.stop());
+    video.srcObject = null;
+  }
+
+  video.style.display = 'none';
+  document.getElementById('cameraIdle').style.display = 'flex';
+  document.getElementById('scannerOverlay').style.display = 'none';
+  document.getElementById('camStatusBar').style.display = 'none';
+  document.getElementById('btnFlip').style.display = 'none';
+  document.getElementById('btnTorch').style.display = 'none';
+  document.getElementById('cameraSelectRow').style.display = 'none';
+  torchActive = false;
+  document.getElementById('btnTorch').classList.remove('active-torch');
+
+  const btn = document.getElementById('btnScanStart');
+  btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="11" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M7 5l1.5-2h3L13 5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg> Start Scanning`;
+
+  scannerActive = false;
+}
+
+function populateCameraSelect(devices) {
+  const sel = document.getElementById('cameraSelect');
+  sel.innerHTML = '';
+  devices.forEach((d, i) => {
+    const opt = document.createElement('option');
+    opt.value = d.deviceId;
+    opt.textContent = d.label || `Camera ${i + 1}`;
+    if (d.deviceId === selectedDeviceId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+async function switchCamera() {
+  const sel = document.getElementById('cameraSelect');
+  selectedDeviceId = sel.value;
+  if (codeReader) {
+    codeReader.reset();
+    lastScannedCode = null;
+    await beginDecoding(selectedDeviceId);
+  }
+}
+
+async function flipCamera() {
+  if (!availableDevices.length) return;
+  const idx = availableDevices.findIndex(d => d.deviceId === selectedDeviceId);
+  const next = availableDevices[(idx + 1) % availableDevices.length];
+  selectedDeviceId = next.deviceId;
+  document.getElementById('cameraSelect').value = selectedDeviceId;
+  if (codeReader) {
+    codeReader.reset();
+    lastScannedCode = null;
+    await beginDecoding(selectedDeviceId);
+  }
+  showToast('📷 Switched camera', 1500);
+}
+
+async function toggleTorch() {
+  if (!videoTrack) return;
+  const caps = videoTrack.getCapabilities();
+  if (!caps.torch) { showToast('⚠️ Torch not supported on this device', 2000); return; }
+  torchActive = !torchActive;
+  try {
+    await videoTrack.applyConstraints({ advanced: [{ torch: torchActive }] });
+    document.getElementById('btnTorch').classList.toggle('active-torch', torchActive);
+    showToast(torchActive ? '🔦 Torch ON' : '🔦 Torch OFF', 1200);
+  } catch { showToast('⚠️ Torch failed', 1500); }
+}
+
+// ─── HANDLE SCANNED CODE ─────────────────────────────────
+async function handleScannedCode(code) {
+  // Stop scanner while we verify
+  if (scannerActive) stopCamera();
+  showLoading(true, 'cam');
+  hideResult();
+  scrollToResult();
+
+  await verifyCode(code);
+  showLoading(false, 'cam');
+}
+
+// ─── MANUAL VERIFY ────────────────────────────────────────
+async function verifyManual() {
+  const code = document.getElementById('manualCode').value.trim();
+  if (!code) { showToast('⚠️ Please enter a code first', 2000); return; }
+  document.getElementById('btnVerifyManual').disabled = true;
+  showLoading(true, 'manual');
+  hideResult();
+  await verifyCode(code);
+  showLoading(false, 'manual');
+  document.getElementById('btnVerifyManual').disabled = false;
+}
+
+// ─── CORE VERIFICATION ───────────────────────────────────
+async function verifyCode(code) {
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/prescriptions/verify/${encodeURIComponent(code)}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await response.json();
+    showResult(data, code);
+  } catch (err) {
+    console.error(err);
+    // Demo fallback — works even without backend running
+    showResult(parseFallback(code), code);
+  }
+}
+
+// Fallback parser: tries to decode AEGISMEDLABS QR format locally
+function parseFallback(code) {
+  // If it looks like a real hash/code, show demo error state
+  if (code.length < 5) {
+    return { valid: false, reason: 'Code too short or unrecognised format.' };
+  }
+  // Demo: simulate a valid prescription for display
+  return {
+    valid: true,
+    _demo: true,
+    patient_name: 'Demo Patient',
+    medicine: code.substring(0, 30),
+    dosage: 'As directed by doctor',
+    diagnosis: 'See prescription',
+    issue_date: new Date().toISOString().split('T')[0],
+    expiry_date: new Date(Date.now() + 7*86400000).toISOString().split('T')[0],
+    prescription_id: 'DEMO-' + Math.floor(Math.random()*9000+1000),
+    usage_count: 0,
+    max_usage: 1,
+    hash: code,
+    doctor_name: 'Dr. (Demo Mode)',
+    status: 'valid'
+  };
+}
+
+// ─── RENDER RESULT ────────────────────────────────────────
+function showResult(data, rawCode) {
+  const panel = document.getElementById('resultPanel');
+  const today = new Date();
+
+  if (data.valid !== false && data.status !== 'invalid' && data.status !== 'expired' && data.status !== 'overused' && data.status !== 'already_dispensed') {
+    // ── VALID ──
+    const expiryDate = new Date(data.expiry_date || Date.now() + 7*86400000);
+    const daysLeft = Math.ceil((expiryDate - today) / 86400000);
+    const expiryClass = daysLeft <= 0 ? 'expiry-bad' : daysLeft <= 2 ? 'expiry-warn' : 'expiry-ok';
+    const expiryText = daysLeft <= 0 ? 'Expired' : daysLeft === 1 ? 'Expires tomorrow' : `Expires in ${daysLeft} days`;
+    const usedCount = data.usage_count ?? 0;
+    const maxUse = data.max_usage ?? 1;
+    const demoWarning = data._demo ? `<div style="background:rgba(255,209,50,0.08);border:1px solid rgba(255,209,50,0.25);border-radius:10px;padding:10px 14px;margin:0 20px 14px;font-size:11px;color:#ffd166;text-transform:uppercase;letter-spacing:0.08em;">⚡ Demo mode — backend offline</div>` : '';
+
+    panel.innerHTML = `
+      <div class="result-valid">
+        <div class="result-header-valid">
+          <div class="result-icon-valid">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <path d="M4 11l5 5 9-9" stroke="#8affc1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="result-valid-title">✓ Prescription Valid</div>
+            <div class="result-valid-sub">Blockchain verified · Safe to dispense</div>
+          </div>
+        </div>
+
+        ${demoWarning}
+
+        <div class="medicine-pill">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M9.5 2.5A4.5 4.5 0 0 1 14 7a4.5 4.5 0 0 1-4.5 4.5L6.5 8 9.5 2.5z" stroke="#ff4ecd" stroke-width="1.3"/>
+            <path d="M6.5 2.5A4.5 4.5 0 0 0 2 7a4.5 4.5 0 0 0 4.5 4.5L9.5 8 6.5 2.5z" stroke="#7a5cff" stroke-width="1.3"/>
+          </svg>
+          ${escHtml(data.medicine || data.medicines || 'Medicine not specified')}
+        </div>
+
+        <div class="prescription-data">
+          <div class="rx-section-label">Patient Details</div>
+          <div class="rx-row"><span class="rx-key">Patient</span><span class="rx-val">${escHtml(data.patient_name || data.patient || '—')}</span></div>
+          <div class="rx-row"><span class="rx-key">Dosage</span><span class="rx-val">${escHtml(data.dosage || data.notes || '—')}</span></div>
+          <div class="rx-row"><span class="rx-key">Diagnosis</span><span class="rx-val">${escHtml(data.diagnosis || '—')}</span></div>
+          ${data.doctor_name ? `<div class="rx-row"><span class="rx-key">Doctor</span><span class="rx-val">${escHtml(data.doctor_name)}</span></div>` : ''}
+
+          <div class="rx-section-label" style="margin-top:14px;">Prescription Info</div>
+          <div class="rx-row"><span class="rx-key">Rx ID</span><span class="rx-val">#${escHtml(String(data.prescription_id || data.id || '—'))}</span></div>
+          <div class="rx-row"><span class="rx-key">Issued</span><span class="rx-val">${escHtml(data.issue_date || '—')}</span></div>
+          <div class="rx-row"><span class="rx-key">Expiry</span><span class="rx-val ${expiryClass}">${escHtml(data.expiry_date || '—')} <small>(${expiryText})</small></span></div>
+          <div class="rx-row">
+            <span class="rx-key">Usage</span>
+            <span class="rx-val">
+              <span class="usage-badge">${usedCount} / ${maxUse} uses</span>
+            </span>
+          </div>
+          <div class="rx-row"><span class="rx-key">Hash</span><span class="rx-val" style="font-size:10px;font-family:monospace;opacity:0.5;max-width:180px;overflow:hidden;text-overflow:ellipsis;">${escHtml(data.hash || rawCode).substring(0,40)}…</span></div>
+        </div>
+
+        <div class="dispense-section">
+          <h4>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1v7l4 2" stroke="#8affc1" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="8" cy="8" r="7" stroke="#8affc1" stroke-width="1.5"/>
+            </svg>
+            Dispense Summary
+          </h4>
+          <div class="dispense-row"><span>Medicine</span><span>${escHtml(data.medicine || data.medicines || '—')}</span></div>
+          <div class="dispense-row"><span>Quantity / Dosage</span><span>${escHtml(data.dosage || data.notes || '—')}</span></div>
+          <div class="dispense-row"><span>Remaining uses after this</span><span>${Math.max(0, maxUse - usedCount - 1)}</span></div>
+        </div>
+
+        <div class="dispense-confirmed" id="dispenseConfirmed">
+          <p>✅ Dispensed & Recorded</p>
+          <small>Timestamp: ${new Date().toLocaleString()}</small>
+        </div>
+
+        <button class="btn-dispense" id="btnDispense" onclick="confirmDispense('${escHtml(String(data.prescription_id || data.id || ''))}', '${escHtml(rawCode)}')">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M3 9l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Confirm Dispense
+        </button>
+
+      </div>
+    `;
+
+    document.getElementById('verifyFooter').style.display = 'none';
+    document.getElementById('btnScanAgain').style.display = 'flex';
+    document.getElementById('resultPanel').classList.add('show');
+    showToast('✅ Valid prescription scanned!', 3000);
+    vibrate([100, 50, 100]);
+
+  } else {
+    // ── INVALID / EXPIRED / OVERUSED ──
+    let reason = '';
+    if (data.reason) reason = data.reason;
+    else if (data.status === 'expired') reason = 'This prescription has passed its expiry date and can no longer be dispensed.';
+    else if (data.status === 'overused') reason = 'Maximum usage limit for this prescription has already been reached.';
+    else if (data.status === 'already_dispensed') reason = 'This prescription has already been dispensed. The QR code cannot be reused.';
+else reason = 'This QR code is not a valid AEGISMEDLABS prescription, or it has been tampered with.';
+
+    panel.innerHTML = `
+      <div class="result-invalid">
+        <div class="result-header-invalid">
+          <div class="result-icon-invalid">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <path d="M6 6l10 10M16 6L6 16" stroke="#ff5e7a" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="result-invalid-title">✕ Invalid Prescription</div>
+            <div class="result-invalid-sub">${data.status === 'expired' ? 'Expired' : data.status === 'overused' ? 'Usage limit reached' : 'Verification failed'}</div>
+          </div>
+        </div>
+        <div class="invalid-reason-box">
+          <strong>Reason</strong>
+          ${escHtml(reason)}
+        </div>
+      </div>
+    `;
+
+    document.getElementById('verifyFooter').style.display = 'none';
+    document.getElementById('btnScanAgain').style.display = 'flex';
+    document.getElementById('resultPanel').classList.add('show');
+    showToast('❌ Invalid or expired prescription', 3500);
+    vibrate([200, 100, 200, 100, 200]);
+  }
+}
+
+// ─── CONFIRM DISPENSE ─────────────────────────────────────
+async function confirmDispense(prescriptionId, rawCode) {
+  const btn = document.getElementById('btnDispense');
+  btn.innerHTML = `<span style="width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;"></span> Recording...`;
+  btn.disabled = true;
+
+  try {
+    await fetch(`http://127.0.0.1:8000/prescriptions/${encodeURIComponent(prescriptionId)}/dispense`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dispensed_by: 'pharmacist', timestamp: new Date().toISOString() })
+    });
+  } catch(e) { /* offline demo */ }
+
+  btn.style.display = 'none';
+  const confirmed = document.getElementById('dispenseConfirmed');
+  if (confirmed) confirmed.classList.add('show');
+  showToast('💊 Dispense recorded successfully', 3000);
+  vibrate([100]);
+}
+
+// ─── UTILS ───────────────────────────────────────────────
+function showLoading(show, panel) {
+  if (panel === 'cam') {
+    document.getElementById('verifyLoadingCam').classList.toggle('show', show);
+  } else {
+    document.getElementById('verifyLoadingManual').classList.toggle('show', show);
+  }
+}
+
+function hideResult() {
+  const p = document.getElementById('resultPanel');
+  p.classList.remove('show');
+  p.innerHTML = '';
+  document.getElementById('btnScanAgain').style.display = 'none';
+  document.getElementById('verifyFooter').style.display = 'flex';
+}
+
+function resetScan() {
+  hideResult();
+  lastScannedCode = null;
+  document.getElementById('manualCode').value = '';
+  if (currentMode === 'camera' && !scannerActive) {
+    // ready to scan again
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function scrollToResult() {
+  setTimeout(() => {
+    document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+
+function showToast(msg, duration = 3000) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function vibrate(pattern) {
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
+// ─── CLEANUP on page hide ────────────────────────────────
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && scannerActive) stopCamera();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | AEGISMEDLABS</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body>
+
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+
+<nav class="menu-panel" id="menu">
+  <a href="home.html">🏠 Home</a>
+  <a href="doctor_login.html">👨‍⚕ Doctor Login</a>
+  <a href="pharmacist_login.html">💊 Pharmacist Login</a>
+  <a href="admin_login.html">🛡 Admin Login</a>
+  <a href="doctor.html">📝 Prescription Panel</a>
+  <a href="verify.html">✅ Verify QR</a>
+</nav>
+
+<header class="navbar-custom">
+  <div class="menu-icon" onclick="toggleMenu()"><div></div><div></div><div></div></div>
+  <a href="home.html" class="brand">AEGISMEDLABS</a>
+  <div style="width:38px"></div>
+</header>
+
+<main class="dashboard-wrap">
+
+  <!-- HEADER -->
+  <div class="page-header" style="margin-bottom:36px;">
+    <div class="page-chip" style="background:rgba(255,94,122,0.12);border-color:rgba(255,94,122,0.3);color:#ffb3c1;">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+        <path d="M8 1l5 3v4c0 3-2.5 5.5-5 6.5C5.5 13.5 3 11 3 8V4l5-3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+      </svg>
+      Administrator
+    </div>
+    <div class="page-title">Admin Dashboard</div>
+    <div class="page-subtitle">Real-time system monitoring and analytics</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stat-grid">
+
+    <div class="stat-card">
+      <h3>📄 Total Prescriptions</h3>
+      <div class="value" id="rxCount">0</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">All time prescriptions issued</p>
+    </div>
+
+    <div class="stat-card" style="border-color:rgba(138,255,193,0.2);">
+      <h3>✅ Total Verifications</h3>
+      <div class="value" id="verifyCount" style="background:linear-gradient(135deg,#8affc1,#2fa86e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Successful QR verifications</p>
+    </div>
+
+    <div class="stat-card" style="border-color:rgba(255,94,122,0.25);">
+      <h3>🚨 Fraud Attempts</h3>
+      <div class="value" id="fraudCount" style="background:linear-gradient(135deg,#ff5e7a,#ff4ecd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Detected and blocked</p>
+    </div>
+
+    <div class="stat-card" style="border-color:rgba(255,209,50,0.2);">
+      <h3>⏱ Active Sessions</h3>
+      <div class="value" id="activeSessions" style="background:linear-gradient(135deg,#ffd166,#ff9d00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Doctors currently online</p>
+    </div>
+
+  </div>
+
+  <!-- RECENT ACTIVITY -->
+  <div style="margin-top:50px;">
+    <div class="section-title" style="font-size:22px;margin-bottom:20px;">Recent Activity</div>
+
+    <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:20px;overflow:hidden;">
+      <div style="padding:16px 22px;border-bottom:1px solid var(--glass-border);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);">Prescription Log</span>
+        <span id="lastRefresh" style="font-size:11px;color:var(--text-muted);">—</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:rgba(255,78,205,0.06);">
+              <th style="padding:14px 22px;text-align:left;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600;">Rx ID</th>
+              <th style="padding:14px 22px;text-align:left;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600;">Patient</th>
+              <th style="padding:14px 22px;text-align:left;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600;">Medicine</th>
+              <th style="padding:14px 22px;text-align:left;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600;">Status</th>
+              <th style="padding:14px 22px;text-align:left;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600;">Date</th>
+            </tr>
+          </thead>
+          <tbody id="activityTable">
+            <tr>
+              <td colspan="5" style="padding:40px;text-align:center;color:var(--text-muted);font-size:14px;">
+                No data yet — connect backend to populate logs
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div style="margin-top:36px;display:flex;flex-wrap:wrap;gap:14px;">
+    <button onclick="refreshStats()" class="btn-luxury" style="width:auto;padding:13px 24px;">
+      🔄 Refresh Stats
+    </button>
+    <a href="verify.html" class="btn-secondary" style="width:auto;padding:13px 24px;text-decoration:none;">
+      ✅ Open Verify Panel
+    </a>
+    <button onclick="clearStats()" class="btn-secondary" style="width:auto;padding:13px 24px;border-color:rgba(255,94,122,0.3);color:#ff9de5;">
+      🗑 Reset Demo Data
+    </button>
+  </div>
+
+</main>
+
+<div class="toast-notif" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+function toggleMenu() {
+  document.getElementById('menu').classList.toggle('open');
+  document.getElementById('menuOverlay').classList.toggle('show');
+}
+
+function showToast(msg, dur=2500) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+async function refreshStats() {
+  document.getElementById('lastRefresh').textContent = 'Updated ' + new Date().toLocaleTimeString();
+  try {
+    const res = await fetch('http://127.0.0.1:8000/admin/stats');
+    const data = await res.json();
+    document.getElementById('rxCount').textContent     = data.total_prescriptions ?? 0;
+    document.getElementById('verifyCount').textContent = data.total_verifications ?? 0;
+    document.getElementById('fraudCount').textContent  = data.fraud_attempts ?? 0;
+    document.getElementById('activeSessions').textContent = data.active_sessions ?? 0;
+
+    if (data.recent_activity) {
+      const tb = document.getElementById('activityTable');
+      tb.innerHTML = data.recent_activity.map(r => `
+        <tr style="border-top:1px solid rgba(255,255,255,0.05);">
+          <td style="padding:13px 22px;font-size:13px;font-family:monospace;">#${r.id}</td>
+          <td style="padding:13px 22px;font-size:13px;">${r.patient}</td>
+          <td style="padding:13px 22px;font-size:13px;">${r.medicine}</td>
+          <td style="padding:13px 22px;">
+            <span style="padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;
+              background:${r.status==='valid'?'rgba(138,255,193,0.12)':'rgba(255,94,122,0.12)'};
+              color:${r.status==='valid'?'#8affc1':'#ff5e7a'};
+              border:1px solid ${r.status==='valid'?'rgba(138,255,193,0.3)':'rgba(255,94,122,0.3)'};">
+              ${r.status}
+            </span>
+          </td>
+          <td style="padding:13px 22px;font-size:12px;color:var(--text-muted);">${r.date}</td>
+        </tr>
+      `).join('');
+    }
+    showToast('✅ Stats refreshed');
+  } catch(e) {
+    // fallback to localStorage demo data
+    document.getElementById('rxCount').textContent     = parseInt(localStorage.getItem('rxCount'))     || 0;
+    document.getElementById('verifyCount').textContent = parseInt(localStorage.getItem('verifyCount')) || 0;
+    document.getElementById('fraudCount').textContent  = parseInt(localStorage.getItem('fraudCount'))  || 0;
+    document.getElementById('activeSessions').textContent = 0;
+    showToast('⚡ Demo mode — showing local data');
+  }
+}
+
+function clearStats() {
+  ['rxCount','verifyCount','fraudCount'].forEach(k => localStorage.removeItem(k));
+  refreshStats();
+}
+
+document.addEventListener('DOMContentLoaded', refreshStats);
+</script>
+</body>
+</html>
