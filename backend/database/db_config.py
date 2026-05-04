@@ -1,14 +1,8 @@
+import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-# UPDATE PASSWORD HERE (very important)
-DB_USER = "postgres"
-DB_PASSWORD = "1234"  # change this
-DB_HOST = "localhost"
-DB_PORT = "5432"
-DB_NAME = "aegis_mdlbs_db"
-
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL, echo=True)
 
@@ -17,3 +11,5 @@ SessionLocal = sessionmaker(
     autoflush=False,
     bind=engine
 )
+
+Base = declarative_base()
